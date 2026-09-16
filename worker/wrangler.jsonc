@@ -1,0 +1,13 @@
+{
+	"name": "recon-demo-worker",
+	"main": "src/index.ts",
+	"compatibility_date": "2026-09-16",
+	"d1_databases": [
+		{
+			"binding": "recon_demo_db",
+			"database_name": "recon-demo-db",
+			"database_id": "0800c9da-c390-4979-ac1c-08a4ba25c9fe",
+			"remote": true
+		}
+	],
+}

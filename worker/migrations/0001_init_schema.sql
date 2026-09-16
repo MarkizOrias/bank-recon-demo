@@ -1,3 +1,5 @@
+-- Migration number: 0001    2026-09-16T15:40:21.000Z
+-- The initial schema injection to DB
 CREATE TABLE Users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   username TEXT NOT NULL UNIQUE,

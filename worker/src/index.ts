@@ -1,7 +1,3 @@
-export interface Env {
-  recon_demo_db: D1Database;
-}
-
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const { results } = await env.recon_demo_db

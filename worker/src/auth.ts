@@ -35,7 +35,7 @@ export function generateSalt(): Uint8Array {
   return crypto.getRandomValues(new Uint8Array(16));
 }
 
-async function verifyPassword(
+export async function verifyPassword(
   password: string,
   saltHex: string,
   expectedHashHex: string,
@@ -51,4 +51,37 @@ export function hexToBuffer(hex: string): Uint8Array {
     bytes[i / 2] = parseInt(hex.substr(i, 2), 16);
   }
   return bytes;
+}
+
+export async function verifySession(
+  token: string,
+  env: Env,
+): Promise<{ userId: number; username: string; role: string } | null> {
+  const session = await env.recon_demo_db
+    .prepare(
+      `SELECT Sessions.user_id, Sessions.expires_at, Sessions.revoked, Users.username, Users.role, Users.active
+       FROM Sessions
+       JOIN Users ON Users.id = Sessions.user_id
+       WHERE Sessions.token = ?`,
+    )
+    .bind(token)
+    .first<{
+      user_id: number;
+      expires_at: string;
+      revoked: number;
+      username: string;
+      role: string;
+      active: number;
+    }>();
+
+  if (!session) return null;
+  if (session.revoked === 1) return null;
+  if (session.active !== 1) return null;
+  if (new Date(session.expires_at) < new Date()) return null;
+
+  return {
+    userId: session.user_id,
+    username: session.username,
+    role: session.role,
+  };
 }

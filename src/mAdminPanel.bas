@@ -60,13 +60,15 @@ Public Function CreateUser(ByVal username As String, ByVal password As String, B
 
     Dim jsonBody As String
     jsonBody = JsonConverter.ConvertToJson(requestBody)
-
+    
+Debug.Print "Token: " & mAuth.CurrentToken
     Dim responseText As String
     responseText = mHttpClient.PostJson("/admin/users", jsonBody, mAuth.CurrentToken)
 
     Dim response As Dictionary
     Set response = JsonConverter.ParseJson(responseText)
 
+Debug.Print responseText
     CreateUser = response.Exists("id")
 End Function
 
@@ -98,3 +100,19 @@ Public Function ReactivateUser(ByVal userId As Long, ByVal newPassword As String
 
     ReactivateUser = response.Exists("active")
 End Function
+
+'Clear Admin Panel on close
+Public Sub ClearAdminPanelSheetIfExists()
+    On Error Resume Next
+    Dim ws As Worksheet
+    Set ws = ThisWorkbook.Sheets("Admin Panel")
+
+    If Not ws Is Nothing Then
+        Dim lastRow As Long
+        lastRow = ws.Cells(ws.Rows.Count, 1).End(xlUp).Row
+        If lastRow > 1 Then
+            ws.Range("A2:E" & lastRow).ClearContents
+        End If
+    End If
+    On Error GoTo 0
+End Sub

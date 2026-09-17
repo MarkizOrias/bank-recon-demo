@@ -36,47 +36,64 @@ Sub OnDeactivateClick(control As IRibbonControl)
     Dim ws As Worksheet
     Set ws = ThisWorkbook.Sheets("Admin Panel")
 
-    If ActiveSheet.Name <> "Admin Panel" Or ActiveCell.Row < 2 Then
-        MsgBox "Select a user row on the Admin Panel sheet first."
+    If ActiveSheet.Name <> "Admin Panel" Then
+        MsgBox "Go to the Admin Panel sheet first, then select a user row."
+        Exit Sub
+    End If
+
+    If ActiveCell.Row < 2 Or ws.Cells(ActiveCell.Row, 1).Value = "" Then
+        MsgBox "Select a row containing a user (click anywhere in that row), then click Deactivate."
         Exit Sub
     End If
 
     Dim userId As Long
+    Dim targetUsername As String
     userId = ws.Cells(ActiveCell.Row, 1).Value
+    targetUsername = ws.Cells(ActiveCell.Row, 2).Value
 
-    If MsgBox("Deactivate user ID " & userId & "?", vbYesNo) = vbYes Then
+    If MsgBox("Deactivate user '" & targetUsername & "' (ID " & userId & ")?", vbYesNo) = vbYes Then
         If mAdminPanel.DeactivateUser(userId) Then
-            mAdminPanel.RefreshAdminUsersSheet
+            mRibbon.RefreshAdminUsersSheet
+            MsgBox "User deactivated."
         Else
-            MsgBox "Deactivation failed."
+            MsgBox "Deactivation failed — check that your session hasn't expired (try logging in again if this persists)."
         End If
     End If
 End Sub
+
 
 Sub OnReactivateClick(control As IRibbonControl)
     Dim ws As Worksheet
     Set ws = ThisWorkbook.Sheets("Admin Panel")
 
-    If ActiveSheet.Name <> "Admin Panel" Or ActiveCell.Row < 2 Then
-        MsgBox "Select a user row on the Admin Panel sheet first."
+    If ActiveSheet.Name <> "Admin Panel" Then
+        MsgBox "Go to the Admin Panel sheet first, then select a user row."
+        Exit Sub
+    End If
+
+    If ActiveCell.Row < 2 Or ws.Cells(ActiveCell.Row, 1).Value = "" Then
+        MsgBox "Select a row containing a user (click anywhere in that row), then click Reactivate."
         Exit Sub
     End If
 
     Dim userId As Long
+    Dim targetUsername As String
     userId = ws.Cells(ActiveCell.Row, 1).Value
+    targetUsername = ws.Cells(ActiveCell.Row, 2).Value
 
     Dim newPassword As String
-    newPassword = InputBox("Enter a new password for this user:")
+    newPassword = InputBox("Enter a new password for '" & targetUsername & "':")
 
     If newPassword = "" Then Exit Sub
 
     If mAdminPanel.ReactivateUser(userId, newPassword) Then
-        mAdminPanel.RefreshAdminUsersSheet
+        mRibbon.RefreshAdminUsersSheet
+        MsgBox "User '" & targetUsername & "' reactivated."
     Else
-        MsgBox "Reactivation failed."
+        MsgBox "Reactivation failed — check that your session hasn't expired (try logging in again if this persists)."
     End If
 End Sub
 
 Sub OnAddUserClick(control As IRibbonControl)
-    MsgBox "TODO: open Add User form"
+    frmAddUser.Show vbModal
 End Sub

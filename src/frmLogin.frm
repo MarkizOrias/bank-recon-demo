@@ -1,10 +1,10 @@
 VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} frmLogin 
    Caption         =   "Recon Tool - Login"
-   ClientHeight    =   960
-   ClientLeft      =   -80
-   ClientTop       =   -450
-   ClientWidth     =   1180
+   ClientHeight    =   640
+   ClientLeft      =   -150
+   ClientTop       =   -750
+   ClientWidth     =   520
    OleObjectBlob   =   "frmLogin.frx":0000
    StartUpPosition =   1  'CenterOwner
 End
@@ -13,6 +13,8 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
+Option Explicit
+
 'Redesigned formatting
 Private Sub UserForm_Initialize()
 
@@ -105,6 +107,7 @@ End Sub
 
 'Close workbook on cancel
 Private Sub cmdCancel_Click()
+
     ThisWorkbook.Saved = True
     Application.Quit
 End Sub

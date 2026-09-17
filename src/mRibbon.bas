@@ -1,4 +1,18 @@
 Attribute VB_Name = "mRibbon"
+'--------------------------
+' ADMIN                   |
+'--------------------------
+Public MyRibbon As IRibbonUI
+
+Sub RibbonOnLoad(ribbon As IRibbonUI)
+    Set MyRibbon = ribbon
+End Sub
+
+Sub GetAdminTabVisible(control As IRibbonControl, ByRef visible)
+    visible = (mAuth.CurrentRole = "admin")
+End Sub
+
+
 Public Sub RefreshAdminUsersSheet()
     Dim ws As Worksheet
     Set ws = ThisWorkbook.Sheets("Admin Panel")
@@ -6,7 +20,7 @@ Public Sub RefreshAdminUsersSheet()
     Dim lastRow As Long
     lastRow = ws.Cells(ws.Rows.Count, 1).End(xlUp).Row
     If lastRow > 1 Then
-        ws.Range("A2:E" & lastRow).ClearContents
+        ws.Range("A2:F" & lastRow).ClearContents
     End If
 
     Dim users As Collection
@@ -22,11 +36,12 @@ Public Sub RefreshAdminUsersSheet()
         ws.Cells(r, 3).Value = u("role")
         ws.Cells(r, 4).Value = u("active")
         ws.Cells(r, 5).Value = u("created_at")
+        ws.Cells(r, 6).Value = u("must_change_password")
         r = r + 1
     Next u
-    
-    ws.Columns("A:E").AutoFit
-    
+
+    ws.Columns("A:F").AutoFit
+
 End Sub
 Sub OnRefreshClick(control As IRibbonControl)
     mRibbon.RefreshAdminUsersSheet
@@ -81,19 +96,31 @@ Sub OnReactivateClick(control As IRibbonControl)
     userId = ws.Cells(ActiveCell.Row, 1).Value
     targetUsername = ws.Cells(ActiveCell.Row, 2).Value
 
-    Dim newPassword As String
-    newPassword = InputBox("Enter a new password for '" & targetUsername & "':")
-
-    If newPassword = "" Then Exit Sub
-
-    If mAdminPanel.ReactivateUser(userId, newPassword) Then
+    Dim tempPassword As String
+    If mAdminPanel.ReactivateUser(userId, tempPassword) Then
         mRibbon.RefreshAdminUsersSheet
-        MsgBox "User '" & targetUsername & "' reactivated."
+        frmTempPassword.Display "User '" & targetUsername & "' reactivated. Share this temporary password securely — it must be changed on first login:", tempPassword
+        frmTempPassword.Show vbModal
     Else
-        MsgBox "Reactivation failed — check that your session hasn't expired (try logging in again if this persists)."
+        MsgBox "Reactivation failed."
     End If
 End Sub
 
 Sub OnAddUserClick(control As IRibbonControl)
     frmAddUser.Show vbModal
 End Sub
+
+'--------------------------
+' RECONCILER              |
+'--------------------------
+Sub GetReconTabVisible(control As IRibbonControl, ByRef visible)
+    visible = (mAuth.CurrentRole = "reconciler")
+End Sub
+
+'--------------------------
+' SHARED / ACCOUNT        |
+'--------------------------
+Sub OnChangePasswordClick(control As IRibbonControl)
+    frmChangePassword.ShowForm False
+End Sub
+

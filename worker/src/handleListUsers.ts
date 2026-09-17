@@ -11,7 +11,7 @@ export default async function handleListUsers(
 
   const { results } = await env.recon_demo_db
     .prepare(
-      "SELECT id, username, role, active, created_at FROM Users ORDER BY username",
+      "SELECT id, username, role, active, created_at, must_change_password FROM Users ORDER BY username",
     )
     .all();
 

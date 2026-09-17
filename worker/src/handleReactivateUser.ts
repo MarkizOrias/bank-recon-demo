@@ -1,4 +1,10 @@
-import { bufferToHex, generateSalt, hashPassword, requireAdmin } from "./auth";
+import {
+  requireAdmin,
+  generateSalt,
+  bufferToHex,
+  hashPassword,
+  generateTempPassword,
+} from "./auth";
 
 export default async function handleReactivateUser(
   request: Request,
@@ -6,26 +12,16 @@ export default async function handleReactivateUser(
   targetId: number,
 ): Promise<Response> {
   const admin = await requireAdmin(request, env);
-  if (!admin) {
-    return Response.json({ error: "Forbidden" }, { status: 403 });
-  }
+  if (!admin) return Response.json({ error: "Forbidden" }, { status: 403 });
 
-  const body = await request.json<{ password?: string }>();
-
-  if (!body.password) {
-    return Response.json(
-      { error: "New password required to reactivate" },
-      { status: 400 },
-    );
-  }
-
+  const tempPassword = generateTempPassword();
   const salt = generateSalt();
   const saltHex = bufferToHex(salt);
-  const passwordHash = await hashPassword(body.password, salt);
+  const passwordHash = await hashPassword(tempPassword, salt);
 
   await env.recon_demo_db
     .prepare(
-      "UPDATE Users SET active = 1, password_hash = ?, salt = ? WHERE id = ?",
+      "UPDATE Users SET active = 1, password_hash = ?, salt = ?, must_change_password = 1 WHERE id = ?",
     )
     .bind(passwordHash, saltHex, targetId)
     .run();
@@ -37,5 +33,5 @@ export default async function handleReactivateUser(
     .bind(admin.userId, targetId)
     .run();
 
-  return Response.json({ id: targetId, active: true });
+  return Response.json({ id: targetId, active: true, tempPassword });
 }

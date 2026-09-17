@@ -1,10 +1,10 @@
 VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} frmAddUser 
    Caption         =   "Add User"
-   ClientHeight    =   1480
-   ClientLeft      =   10
-   ClientTop       =   0
-   ClientWidth     =   1780
+   ClientHeight    =   430
+   ClientLeft      =   -100
+   ClientTop       =   -450
+   ClientWidth     =   520
    OleObjectBlob   =   "frmAddUser.frx":0000
    StartUpPosition =   1  'CenterOwner
 End
@@ -21,7 +21,7 @@ Private Sub UserForm_Initialize()
     With Me
         .Caption = "Add New User"
         .Width = 260
-        .Height = 210
+        .Height = 175
         .StartUpPosition = 1
         .BackColor = RGB(240, 240, 240)
     End With
@@ -31,11 +31,11 @@ Private Sub UserForm_Initialize()
         .Caption = "Username"
         .Left = 20
         .Top = 20
-        .Width = 70
         .Height = 18
         .Font.Name = "Segoe UI"
         .Font.Size = 9
         .BackStyle = fmBackStyleTransparent
+        .AutoSize = True
     End With
 
     ' Username textbox
@@ -49,52 +49,28 @@ Private Sub UserForm_Initialize()
         .TabIndex = 0
     End With
 
-    ' Password label
-    With Me.lblPassword
-        .Caption = "Password"
+    ' Role label
+    With Me.lblRole
+        .Caption = "Role"
         .Left = 20
         .Top = 52
-        .Width = 70
         .Height = 18
         .Font.Name = "Segoe UI"
         .Font.Size = 9
         .BackStyle = fmBackStyleTransparent
+        .AutoSize = True
     End With
 
-    ' Password textbox
-    With Me.txtPassword
+    ' Role combobox
+    With Me.cboRole
         .Left = 95
         .Top = 50
         .Width = 135
         .Height = 20
         .Font.Name = "Segoe UI"
         .Font.Size = 9
-        .PasswordChar = "*"
-        .TabIndex = 1
-    End With
-
-    ' Role label
-    With Me.lblRole
-        .Caption = "Role"
-        .Left = 20
-        .Top = 84
-        .Width = 70
-        .Height = 18
-        .Font.Name = "Segoe UI"
-        .Font.Size = 9
-        .BackStyle = fmBackStyleTransparent
-    End With
-
-    ' Role combobox
-    With Me.cboRole
-        .Left = 95
-        .Top = 82
-        .Width = 135
-        .Height = 20
-        .Font.Name = "Segoe UI"
-        .Font.Size = 9
         .Style = fmStyleDropDownList
-        .TabIndex = 2
+        .TabIndex = 1
         .AddItem "admin"
         .AddItem "reconciler"
         .ListIndex = 1
@@ -104,66 +80,52 @@ Private Sub UserForm_Initialize()
     With Me.cmdSave
         .Caption = "Save"
         .Left = 95
-        .Top = 124
+        .Top = 90
         .Width = 65
         .Height = 24
         .Font.Name = "Segoe UI"
         .Font.Size = 9
         .Default = True
-        .TabIndex = 3
+        .TabIndex = 2
     End With
 
     ' Cancel button
     With Me.cmdCancel
         .Caption = "Cancel"
         .Left = 165
-        .Top = 124
+        .Top = 90
         .Width = 65
         .Height = 24
         .Font.Name = "Segoe UI"
         .Font.Size = 9
         .Cancel = True
-        .TabIndex = 4
+        .TabIndex = 3
     End With
 
     ' Initial focus
     Me.txtUsername.SetFocus
-    
-    Me.StartUpPosition = 1 ' CenterOwner
-
-    With Me.cboRole
-        .AddItem "admin"
-        .AddItem "reconciler"
-        .ListIndex = 1 ' defaults to "reconciler" — the more common case
-    End With
-
-    With Me.txtPassword
-        .PasswordChar = "*"
-    End With
-
-    Me.cmdSave.Default = True
-    Me.cmdCancel.Cancel = True
 
 End Sub
 
 'Save button
 Private Sub cmdSave_Click()
     Dim newUsername As String
-    Dim newPassword As String
     Dim newRole As String
+    Dim tempPassword As String
 
     newUsername = Me.txtUsername.Value
-    newPassword = Me.txtPassword.Value
     newRole = Me.cboRole.Value
 
-    If newUsername = "" Or newPassword = "" Or newRole = "" Then
+    If newUsername = "" Or newRole = "" Then
         MsgBox "Please fill in all fields."
         Exit Sub
     End If
 
-    If mAdminPanel.CreateUser(newUsername, newPassword, newRole) Then
+    If mAdminPanel.CreateUser(newUsername, newRole, tempPassword) Then
         Me.Hide
         mRibbon.RefreshAdminUsersSheet
+        frmTempPassword.Display "User '" & newUsername & "' created. Share this temporary password securely — it must be changed on first login:", tempPassword
+        frmTempPassword.Show vbModal
     Else
         MsgBox "Failed to create user — username may already exist."
     End If

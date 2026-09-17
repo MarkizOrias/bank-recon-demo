@@ -16,10 +16,11 @@ export default async function handleLogin(
 
   const user = await env.recon_demo_db
     .prepare(
-      "SELECT id, password_hash, salt, role, active FROM Users WHERE username = ?",
+      "SELECT id, password_hash, salt, role, active, must_change_password FROM Users WHERE username = ?",
     )
     .bind(body.username)
     .first<{
+      must_change_password: number;
       id: number;
       password_hash: string;
       salt: string;
@@ -51,5 +52,9 @@ export default async function handleLogin(
     .bind(user.id, token, expiresAt)
     .run();
 
-  return Response.json({ token, role: user.role });
+  return Response.json({
+    token,
+    role: user.role,
+    mustChangePassword: user.must_change_password === 1,
+  });
 }

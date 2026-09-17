@@ -26,7 +26,8 @@ Public Sub SetupAdminPanelSheet()
         ws.Cells(1, 3).Value = "Role"
         ws.Cells(1, 4).Value = "Active"
         ws.Cells(1, 5).Value = "Created At"
-        ws.Range("A1:E1").Font.Bold = True
+        ws.Cells(1, 6).Value = "Must Change Password"
+        ws.Range("A1:F1").Font.Bold = True
     End If
 
     ws.Activate
@@ -51,26 +52,29 @@ Public Function GetUsers() As Collection
 End Function
 
 'User's creation function, input arg stored in VBA variables, not locally. Output is bool.
-Public Function CreateUser(ByVal username As String, ByVal password As String, ByVal role As String) As Boolean
+Public Function CreateUser(ByVal username As String, ByVal role As String, ByRef tempPassword As String) As Boolean
     Dim requestBody As Object
     Set requestBody = CreateObject("Scripting.Dictionary")
     requestBody.Add "username", username
-    requestBody.Add "password", password
     requestBody.Add "role", role
 
     Dim jsonBody As String
     jsonBody = JsonConverter.ConvertToJson(requestBody)
-    
-Debug.Print "Token: " & mAuth.CurrentToken
+
     Dim responseText As String
     responseText = mHttpClient.PostJson("/admin/users", jsonBody, mAuth.CurrentToken)
 
     Dim response As Dictionary
     Set response = JsonConverter.ParseJson(responseText)
 
-Debug.Print responseText
-    CreateUser = response.Exists("id")
+    If response.Exists("tempPassword") Then
+        tempPassword = response("tempPassword")
+        CreateUser = True
+    Else
+        CreateUser = False
+    End If
 End Function
+
 
 'User's deactivation function, userId as input arg. Output is bool.
 Public Function DeactivateUser(ByVal userId As Long) As Boolean
@@ -84,35 +88,30 @@ Public Function DeactivateUser(ByVal userId As Long) As Boolean
 End Function
 
 'User's reactivation function, userId as input arg. Output is bool.
-Public Function ReactivateUser(ByVal userId As Long, ByVal newPassword As String) As Boolean
-    Dim requestBody As Object
-    Set requestBody = CreateObject("Scripting.Dictionary")
-    requestBody.Add "password", newPassword
-
-    Dim jsonBody As String
-    jsonBody = JsonConverter.ConvertToJson(requestBody)
-
+Public Function ReactivateUser(ByVal userId As Long, ByRef tempPassword As String) As Boolean
     Dim responseText As String
-    responseText = mHttpClient.PatchJson("/admin/users/" & userId & "/reactivate", jsonBody, mAuth.CurrentToken)
+    responseText = mHttpClient.PatchJson("/admin/users/" & userId & "/reactivate", "{}", mAuth.CurrentToken)
 
     Dim response As Dictionary
     Set response = JsonConverter.ParseJson(responseText)
 
-    ReactivateUser = response.Exists("active")
+    If response.Exists("tempPassword") Then
+        tempPassword = response("tempPassword")
+        ReactivateUser = True
+    Else
+        ReactivateUser = False
+    End If
 End Function
 
-'Clear Admin Panel on close
-Public Sub ClearAdminPanelSheetIfExists()
+'Remove Admin Panel on close
+Public Sub RemoveAdminPanelSheetIfExists()
     On Error Resume Next
     Dim ws As Worksheet
     Set ws = ThisWorkbook.Sheets("Admin Panel")
-
     If Not ws Is Nothing Then
-        Dim lastRow As Long
-        lastRow = ws.Cells(ws.Rows.Count, 1).End(xlUp).Row
-        If lastRow > 1 Then
-            ws.Range("A2:E" & lastRow).ClearContents
-        End If
+        Application.DisplayAlerts = False
+        ws.Delete
+        Application.DisplayAlerts = True
     End If
     On Error GoTo 0
 End Sub

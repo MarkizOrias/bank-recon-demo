@@ -5,6 +5,8 @@ Option Explicit
 Public CurrentToken As String
 Public CurrentRole As String
 Public CurrentUsername As String
+Public CurrentMustChangePassword As Boolean
+Private pLastPassword As String
 
 'Login function with username & pwd input arguments, bool as output
 Public Function Login(ByVal username As String, ByVal password As String) As Boolean
@@ -37,11 +39,38 @@ Public Function Login(ByVal username As String, ByVal password As String) As Boo
         CurrentToken = response("token")
         CurrentRole = response("role")
         CurrentUsername = username
+        CurrentMustChangePassword = response("mustChangePassword")
+        pLastPassword = password
         Login = True
     Else
         Login = False
     End If
 End Function
 
+Public Function ConsumeLastPassword() As String
+    ConsumeLastPassword = pLastPassword
+    pLastPassword = ""
+End Function
 
+Public Function ChangePassword(ByVal currentPassword As String, ByVal newPassword As String) As Boolean
+    Dim requestBody As Object
+    Set requestBody = CreateObject("Scripting.Dictionary")
+    requestBody.Add "currentPassword", currentPassword
+    requestBody.Add "newPassword", newPassword
 
+    Dim jsonBody As String
+    jsonBody = JsonConverter.ConvertToJson(requestBody)
+
+    Dim responseText As String
+    responseText = mHttpClient.PatchJson("/users/me/password", jsonBody, mAuth.CurrentToken)
+
+    Dim response As Dictionary
+    Set response = JsonConverter.ParseJson(responseText)
+
+    If response.Exists("success") Then
+        CurrentMustChangePassword = False
+        ChangePassword = True
+    Else
+        ChangePassword = False
+    End If
+End Function

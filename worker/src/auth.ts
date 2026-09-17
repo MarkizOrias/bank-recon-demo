@@ -101,3 +101,21 @@ export async function requireAdmin(
 
   return session;
 }
+
+export function generateTempPassword(): string {
+  const charset = "ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
+  const bytes = crypto.getRandomValues(new Uint8Array(10));
+  return Array.from(bytes)
+    .map((b) => charset[b % charset.length])
+    .join("");
+}
+
+export async function requireAuth(
+  request: Request,
+  env: Env,
+): Promise<{ userId: number; username: string; role: string } | null> {
+  const authHeader = request.headers.get("Authorization");
+  const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
+  if (!token) return null;
+  return verifySession(token, env);
+}

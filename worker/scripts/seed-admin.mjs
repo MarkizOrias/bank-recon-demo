@@ -42,5 +42,5 @@ const passwordHash = await hashPassword(password, salt);
 
 // Generates SQL command to insert the initial admin user with pwd hash and saltHex to the Users table with: npx wrangler d1 execute recon-demo-db --remote --command "<OUTPUT>"
 console.log(
-  `INSERT INTO Users (username, password_hash, salt, role, active) VALUES ('${username}', '${passwordHash}', '${saltHex}', 'admin', 1);`,
+  `INSERT INTO Users (username, password_hash, salt, role, active, must_change_password) VALUES ('${username}', '${passwordHash}', '${saltHex}', 'admin', 1, 0);`,
 );

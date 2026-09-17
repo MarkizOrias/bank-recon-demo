@@ -1,3 +1,4 @@
+import handleChangePassword from "./handleChangePassword";
 import handleCreateUser from "./handleCreateUser";
 import handleDeactivateUser from "./handleDeactivateUser";
 import handleListUsers from "./handleListUsers";
@@ -62,6 +63,10 @@ export default {
         env,
         parseInt(reactivateMatch[1], 10),
       );
+    }
+
+    if (url.pathname === "/users/me/password" && request.method === "PATCH") {
+      return handleChangePassword(request, env);
     }
 
     return new Response("Not found", { status: 404 });

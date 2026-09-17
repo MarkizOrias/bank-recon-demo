@@ -12,10 +12,13 @@ export default {
       return Response.json(results);
     }
 
+    //For PS - run server: npx wrangler dev, in separate terminal: Invoke-RestMethod -Uri "http://127.0.0.1:8787/login" -Method Post -ContentType "application/json" -Body '{"username":"admin","password":"<YOUR PWD>"}'
+    //It it will print session's token
     if (url.pathname === "/login" && request.method === "POST") {
       return handleLogin(request, env);
     }
 
+    //For PS - run server: npx wrangler dev, in separate terminal: Invoke-RestMethod -Uri "http://127.0.0.1:8787/me" -Headers @{ Authorization = "Bearer <PASTE SESSION's TOKEN HERE>" }
     if (url.pathname === "/me" && request.method === "GET") {
       const authHeader = request.headers.get("Authorization");
       const token = authHeader?.startsWith("Bearer ")

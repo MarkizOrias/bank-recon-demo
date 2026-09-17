@@ -28,3 +28,34 @@ Public Sub ExportAllModules()
 
 End Sub
 
+Public Sub ImportAllModules()
+
+    Dim fileName As String
+    Dim compName As String
+    Dim fileExt As String
+    Dim comp As VBIDE.VBComponent
+    
+    fileName = Dir(EXPORT_PATH & "*.*")
+    Do While fileName <> ""
+        fileExt = LCase(Right(fileName, 4))
+        If fileExt = ".bas" Or fileExt = ".cls" Or fileExt = ".frm" Then
+            compName = Left(fileName, Len(fileName) - 4)
+
+            If compName <> "mDevTools" Then
+                On Error Resume Next
+                Set comp = ThisWorkbook.VBProject.VBComponents(compName)
+                On Error GoTo 0
+
+                If Not comp Is Nothing Then
+                    ThisWorkbook.VBProject.VBComponents.Remove comp
+                    Set comp = Nothing
+                End If
+
+                ThisWorkbook.VBProject.VBComponents.Import EXPORT_PATH & fileName
+            End If
+        End If
+
+        fileName = Dir
+    Loop
+
+End Sub

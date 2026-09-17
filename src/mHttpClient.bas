@@ -27,6 +27,6 @@ Public Function PostJson(ByVal endpoint As String, ByVal jsonBody As String, Opt
     http.Send jsonBody
     
     'Assigns response value to function's output
-        PostJson = http.ResponseText
+        PostJson = http.responseText
 
 End Function

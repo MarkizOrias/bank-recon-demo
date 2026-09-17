@@ -1,5 +1,38 @@
 Attribute VB_Name = "mAdminPanel"
 Option Explicit
+'Setup Admin Panel at start
+Public Sub SetupAdminPanelSheet()
+    Dim ws As Worksheet
+    Dim found As Boolean
+    found = False
+
+    For Each ws In ThisWorkbook.Sheets
+        If ws.Name = "Admin Panel" Then
+            found = True
+            Exit For
+        End If
+    Next ws
+
+    If Not found Then
+        Set ws = ThisWorkbook.Sheets.Add(Before:=ThisWorkbook.Sheets(1))
+        ws.Name = "Admin Panel"
+    End If
+
+    Set ws = ThisWorkbook.Sheets("Admin Panel")
+
+    If ws.Cells(1, 1).Value = "" Then
+        ws.Cells(1, 1).Value = "ID"
+        ws.Cells(1, 2).Value = "Username"
+        ws.Cells(1, 3).Value = "Role"
+        ws.Cells(1, 4).Value = "Active"
+        ws.Cells(1, 5).Value = "Created At"
+        ws.Range("A1:E1").Font.Bold = True
+    End If
+
+    ws.Activate
+
+    RefreshAdminUsersSheet
+End Sub
 
 'Users endpoint query function - collection output
 Public Function GetUsers() As Collection

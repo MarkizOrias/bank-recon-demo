@@ -1,4 +1,4 @@
-function bufferToHex(buffer: ArrayBuffer): string {
+export function bufferToHex(buffer: ArrayBuffer | Uint8Array): string {
   return Array.from(new Uint8Array(buffer))
     .map((byte) => byte.toString(16).padStart(2, "0"))
     .join("");
@@ -84,4 +84,20 @@ export async function verifySession(
     username: session.username,
     role: session.role,
   };
+}
+
+export async function requireAdmin(
+  request: Request,
+  env: Env,
+): Promise<{ userId: number; username: string; role: string } | null> {
+  const authHeader = request.headers.get("Authorization");
+  const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
+
+  if (!token) return null;
+
+  const session = await verifySession(token, env);
+
+  if (!session || session.role !== "admin") return null;
+
+  return session;
 }

@@ -6,6 +6,7 @@ Public Sub SetupAdminPanelSheet()
     Dim found As Boolean
     found = False
 
+    'Loop through all existing sheets, if Admin Panel is found, stop searching.
     For Each ws In ThisWorkbook.Sheets
         If ws.Name = "Admin Panel" Then
             found = True
@@ -13,6 +14,7 @@ Public Sub SetupAdminPanelSheet()
         End If
     Next ws
 
+    'If not found, rename the first sheet existing to Admin Panel
     If Not found Then
         Set ws = ThisWorkbook.Sheets.Add(Before:=ThisWorkbook.Sheets(1))
         ws.Name = "Admin Panel"
@@ -20,19 +22,12 @@ Public Sub SetupAdminPanelSheet()
 
     Set ws = ThisWorkbook.Sheets("Admin Panel")
 
-    If ws.Cells(1, 1).Value = "" Then
-        ws.Cells(1, 1).Value = "ID"
-        ws.Cells(1, 2).Value = "Username"
-        ws.Cells(1, 3).Value = "Role"
-        ws.Cells(1, 4).Value = "Active"
-        ws.Cells(1, 5).Value = "Created At"
-        ws.Cells(1, 6).Value = "Must Change Password"
-        ws.Range("A1:F1").Font.Bold = True
-    End If
+    'Fill datagrid headers
+    ThisWorkbook.Sheets("Admin Panel").Activate
 
-    ws.Activate
-
-    RefreshAdminUsersSheet
+    'Call datagrid filler
+    mRibbon.RefreshAdminUsersSheet
+    
 End Sub
 
 'Users endpoint query function - collection output
@@ -51,7 +46,7 @@ Public Function GetUsers() As Collection
     
 End Function
 
-'User's creation function, input arg stored in VBA variables, not locally. Output is bool.
+'User's creation function, input arg stored in VBA variables, not locally, from the AddUser form. Output is bool.
 Public Function CreateUser(ByVal username As String, ByVal role As String, ByRef tempPassword As String) As Boolean
     Dim requestBody As Object
     Set requestBody = CreateObject("Scripting.Dictionary")
@@ -61,12 +56,14 @@ Public Function CreateUser(ByVal username As String, ByVal role As String, ByRef
     Dim jsonBody As String
     jsonBody = JsonConverter.ConvertToJson(requestBody)
 
+    'POST call to /admin/users endpoint
     Dim responseText As String
     responseText = mHttpClient.PostJson("/admin/users", jsonBody, mAuth.CurrentToken)
 
     Dim response As Dictionary
     Set response = JsonConverter.ParseJson(responseText)
 
+    'Temporary Password response
     If response.Exists("tempPassword") Then
         tempPassword = response("tempPassword")
         CreateUser = True

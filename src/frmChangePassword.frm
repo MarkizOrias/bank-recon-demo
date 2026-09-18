@@ -150,6 +150,8 @@ Private Sub cmdSave_Click()
     End If
 
     Dim currentPwd As String
+    
+    'If temp Pass to New pass, hide current pwd query
     If IsForced Then
         currentPwd = mAuth.ConsumeLastPassword()
     Else

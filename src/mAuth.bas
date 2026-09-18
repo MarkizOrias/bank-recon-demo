@@ -47,11 +47,13 @@ Public Function Login(ByVal username As String, ByVal password As String) As Boo
     End If
 End Function
 
+'Hide current pwd prompt from temp to new pwd logic
 Public Function ConsumeLastPassword() As String
     ConsumeLastPassword = pLastPassword
     pLastPassword = ""
 End Function
 
+'Change pwd logic - current and new pwd as input, bool as output, calling /users/me/password endpoint
 Public Function ChangePassword(ByVal currentPassword As String, ByVal newPassword As String) As Boolean
     Dim requestBody As Object
     Set requestBody = CreateObject("Scripting.Dictionary")

@@ -119,3 +119,12 @@ export async function requireAuth(
   if (!token) return null;
   return verifySession(token, env);
 }
+
+export async function requireReconciler(
+  request: Request,
+  env: Env,
+): Promise<{ userId: number; username: string; role: string } | null> {
+  const session = await requireAuth(request, env);
+  if (!session || session.role !== "reconciler") return null;
+  return session;
+}

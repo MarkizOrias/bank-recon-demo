@@ -10,6 +10,8 @@ import handleProposeMatch from "./handlers/recon/handleProposeMatch";
 import handleMatchingQueue from "./handlers/recon/handleMatchingQueue";
 import handleApproveMatch from "./handlers/recon/handleApproveMatch";
 import handleRejectMatch from "./handlers/recon/handleRejectMatch";
+import handleClosedMatches from "./handlers/admin/handleClosedMatches";
+import handleReopenMatch from "./handlers/admin/handleReopenMatch";
 
 // Run server: npx wrangler dev
 export default {
@@ -108,6 +110,13 @@ export default {
     const rejectMatch = url.pathname.match(/^\/recon\/reject-match\/(\d+)$/);
     if (rejectMatch && request.method === "POST")
       return handleRejectMatch(request, env, parseInt(rejectMatch[1], 10));
+
+    if (url.pathname === "/admin/closed-matches" && request.method === "GET")
+      return handleClosedMatches(request, env);
+
+    const reopenMatch = url.pathname.match(/^\/admin\/reopen-match\/(\d+)$/);
+    if (reopenMatch && request.method === "POST")
+      return handleReopenMatch(request, env, parseInt(reopenMatch[1], 10));
 
     return new Response("Not found", { status: 404 });
   },

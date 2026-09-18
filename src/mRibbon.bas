@@ -68,6 +68,95 @@ Public Sub RefreshAdminUsersSheet()
     
 End Sub
 
+'Navigate through matched breaks
+Public Sub RefreshClosedBreaksSheet()
+    Dim ws As Worksheet
+    Set ws = ThisWorkbook.Sheets("Closed Breaks")
+
+    ws.Cells.Clear
+
+    ws.Cells(1, 1).Value = "Match ID"
+    ws.Cells(1, 2).Value = "Proposed By"
+    ws.Cells(1, 3).Value = "Approved By"
+    ws.Cells(1, 4).Value = "Approved At"
+    ws.Cells(1, 5).Value = "Variance"
+    ws.Cells(1, 6).Value = "Side"
+    ws.Cells(1, 7).Value = "Reference"
+    ws.Cells(1, 8).Value = "Amount"
+    ws.Cells(1, 9).Value = "Currency"
+    ws.Range("A1:I1").Font.Bold = True
+    ws.Columns("A:I").AutoFit
+
+    Dim closed As Collection
+    Set closed = mAdminPanel.GetClosedMatches()
+
+    If closed.Count = 0 Then
+        ws.Cells(2, 1).Value = "No closed matches."
+        Exit Sub
+    End If
+
+    Dim m As Dictionary
+    Dim rec As Dictionary
+    Dim r As Long
+    r = 2
+
+    For Each m In closed
+        Dim records As Collection
+        Set records = m("records")
+
+        For Each rec In records
+            ws.Cells(r, 1).Value = m("matchId")
+            ws.Cells(r, 2).Value = m("proposedBy")
+            ws.Cells(r, 3).Value = m("approvedBy")
+            ws.Cells(r, 4).Value = m("approvedAt")
+            ws.Cells(r, 5).Value = m("amountVariance")
+            ws.Cells(r, 6).Value = rec("side")
+            ws.Cells(r, 7).Value = rec("reference")
+            ws.Cells(r, 8).Value = rec("amount")
+            ws.Cells(r, 9).Value = rec("currency")
+            r = r + 1
+        Next rec
+    Next m
+
+    ws.Columns("A:I").AutoFit
+End Sub
+
+'Reopening breaks functionality
+Sub OnChangeReopenBreak(control As IRibbonControl)
+    If ActiveSheet.Name <> "Closed Breaks" Then
+        MsgBox "Go to the Closed Breaks sheet first, then select a row belonging to the match you want to reopen."
+        Exit Sub
+    End If
+
+    Dim ws As Worksheet
+    Set ws = ThisWorkbook.Sheets("Closed Breaks")
+
+    Dim matchIdCol As Long
+    matchIdCol = FindColumnByHeader(ws, "Match ID")
+    If matchIdCol = 0 Then
+        MsgBox "Could not find the Match ID column on this sheet."
+        Exit Sub
+    End If
+
+    If ActiveCell.Row < 2 Or ws.Cells(ActiveCell.Row, matchIdCol).Value = "" Then
+        MsgBox "Select a row containing a closed match first."
+        Exit Sub
+    End If
+
+    Dim matchId As Long
+    matchId = ws.Cells(ActiveCell.Row, matchIdCol).Value
+
+    If MsgBox("Reopen match ID " & matchId & "? Its records will return to Open Breaks for re-reconciliation.", vbYesNo) = vbYes Then
+        If mAdminPanel.ReopenMatch(matchId) Then
+            mRibbon.RefreshAdminUsersSheet
+            mRibbon.RefreshClosedBreaksSheet
+            MsgBox "Match reopened."
+        Else
+            MsgBox "Reopen failed — the match may no longer be approved, or may have already been reopened."
+        End If
+    End If
+End Sub
+
 'Normalize text formatting (without underscore)
 Private Function FormatHeaderLabel(ByVal rawKey As String) As String
     If rawKey = "id" Then

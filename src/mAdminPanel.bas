@@ -19,14 +19,26 @@ Public Sub SetupAdminPanelSheet()
         Set ws = ThisWorkbook.Sheets.Add(Before:=ThisWorkbook.Sheets(1))
         ws.Name = "Admin Panel"
     End If
+    
+    'Same for Closed Breaks
+    found = False
+    For Each ws In ThisWorkbook.Sheets
+        If ws.Name = "Closed Breaks" Then
+            found = True
+            Exit For
+        End If
+    Next ws
+    If Not found Then
+        Set ws = ThisWorkbook.Sheets.Add(After:=ThisWorkbook.Sheets("Admin Panel"))
+        ws.Name = "Closed Breaks"
+    End If
 
-    Set ws = ThisWorkbook.Sheets("Admin Panel")
-
-    'Fill datagrid headers
+    'Activate Admin Panel sheet
     ThisWorkbook.Sheets("Admin Panel").Activate
 
     'Call datagrid filler
     mRibbon.RefreshAdminUsersSheet
+    mRibbon.RefreshClosedBreaksSheet
     
 End Sub
 
@@ -105,14 +117,46 @@ Public Sub RemoveAdminPanelSheetIfExists()
     If ThisWorkbook.Sheets.Count <= 1 Then Exit Sub
 
     Dim ws As Worksheet
+
     Set ws = Nothing
     On Error Resume Next
     Set ws = ThisWorkbook.Sheets("Admin Panel")
     On Error GoTo 0
+    If Not ws Is Nothing And ThisWorkbook.Sheets.Count > 1 Then
+        Application.DisplayAlerts = False
+        ws.Delete
+        Application.DisplayAlerts = True
+    End If
 
+    Set ws = Nothing
+    On Error Resume Next
+    Set ws = ThisWorkbook.Sheets("Closed Breaks")
+    On Error GoTo 0
     If Not ws Is Nothing And ThisWorkbook.Sheets.Count > 1 Then
         Application.DisplayAlerts = False
         ws.Delete
         Application.DisplayAlerts = True
     End If
 End Sub
+
+'Get Closed Matches from the endpoint (filtered by status - unmatched/matched)
+Public Function GetClosedMatches() As Collection
+    Dim responseText As String
+    responseText = mHttpClient.GetJson("/admin/closed-matches", mAuth.CurrentToken)
+
+    Dim response As Collection
+    Set response = JsonConverter.ParseJson(responseText)
+
+    Set GetClosedMatches = response
+End Function
+
+'Reopen Matches from the endpoint (filtered by status - unmatched/matched)
+Public Function ReopenMatch(ByVal matchId As Long) As Boolean
+    Dim responseText As String
+    responseText = mHttpClient.PostJson("/admin/reopen-match/" & matchId, "{}", mAuth.CurrentToken)
+
+    Dim response As Dictionary
+    Set response = JsonConverter.ParseJson(responseText)
+
+    ReopenMatch = response.Exists("status")
+End Function

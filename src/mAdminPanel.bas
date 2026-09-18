@@ -102,13 +102,17 @@ End Function
 
 'Remove Admin Panel on close
 Public Sub RemoveAdminPanelSheetIfExists()
-    On Error Resume Next
+    If ThisWorkbook.Sheets.Count <= 1 Then Exit Sub
+
     Dim ws As Worksheet
+    Set ws = Nothing
+    On Error Resume Next
     Set ws = ThisWorkbook.Sheets("Admin Panel")
-    If Not ws Is Nothing Then
+    On Error GoTo 0
+
+    If Not ws Is Nothing And ThisWorkbook.Sheets.Count > 1 Then
         Application.DisplayAlerts = False
         ws.Delete
         Application.DisplayAlerts = True
     End If
-    On Error GoTo 0
 End Sub

@@ -2,9 +2,9 @@ VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} frmAddUser 
    Caption         =   "Add User"
    ClientHeight    =   280
-   ClientLeft      =   -100
-   ClientTop       =   -450
-   ClientWidth     =   520
+   ClientLeft      =   -140
+   ClientTop       =   -600
+   ClientWidth     =   340
    OleObjectBlob   =   "frmAddUser.frx":0000
    StartUpPosition =   1  'CenterOwner
 End
